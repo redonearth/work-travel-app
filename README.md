@@ -7,3 +7,9 @@
 - React Native
 - Expo
 - TypeScript
+
+## Code Challenge
+
+- [ ] 마지막 Tab 상태 저장하기
+- [ ] 할 일 '완료'하기
+- [ ] 텍스트 수정 기능 추가하기
