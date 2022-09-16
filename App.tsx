@@ -8,6 +8,7 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import { theme } from './colors';
 import { Fontisto } from '@expo/vector-icons';
@@ -93,23 +94,40 @@ export default function App() {
     }
   };
   const deleteToDo = (key: string) => {
-    Alert.alert('Delete To Do', 'Are you sure?', [
-      { text: 'Cancel' },
-      {
-        text: "I'm Sure",
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const newToDos = { ...toDos };
-            delete newToDos[key];
-            setToDos(newToDos);
-            await saveToDos(newToDos);
-          } catch (error) {
-            console.error(error);
-          }
+    if (Platform.OS === 'web') {
+      const ok = confirm('Do you want to delete this to do?');
+      if (ok) {
+        try {
+          const newToDos = { ...toDos };
+          delete newToDos[key];
+          setToDos(newToDos);
+          saveToDos(newToDos);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    } else {
+      Alert.alert('Delete To Do', 'Are you sure?', [
+        {
+          text: 'Cancel',
+          style: 'cancel',
         },
-      },
-    ]);
+        {
+          text: "I'm Sure",
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const newToDos = { ...toDos };
+              delete newToDos[key];
+              setToDos(newToDos);
+              await saveToDos(newToDos);
+            } catch (error) {
+              console.error(error);
+            }
+          },
+        },
+      ]);
+    }
   };
   return (
     <View style={styles.container}>
@@ -117,7 +135,11 @@ export default function App() {
       <View style={styles.header}>
         <Pressable style={handlePressableStyle} onPress={work}>
           <Text
-            style={{ ...styles.btnText, color: working ? 'white' : theme.grey }}
+            style={{
+              fontSize: 36,
+              fontWeight: '600',
+              color: working ? 'white' : theme.grey,
+            }}
           >
             Work
           </Text>
@@ -125,7 +147,8 @@ export default function App() {
         <Pressable style={handlePressableStyle} onPress={travel}>
           <Text
             style={{
-              ...styles.btnText,
+              fontSize: 36,
+              fontWeight: '600',
               color: !working ? 'white' : theme.grey,
             }}
           >
@@ -170,10 +193,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
     marginTop: 100,
-  },
-  btnText: {
-    fontSize: 36,
-    fontWeight: '600',
   },
   input: {
     backgroundColor: 'white',
