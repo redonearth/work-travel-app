@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { theme } from './colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface IPressableProps {
   pressed: boolean;
@@ -21,23 +22,45 @@ interface IToDos {
   };
 }
 
+const STORAGE_KEY = '@toDos';
+
 export default function App() {
   const [working, setWorking] = useState<boolean>(true);
   const [text, setText] = useState<string>('');
   const [toDos, setToDos] = useState<IToDos>({});
+  useEffect(() => {
+    loadToDos();
+  }, []);
   const travel = () => setWorking(false);
   const work = () => setWorking(true);
   const handlePressable = ({ pressed }: IPressableProps) => [
     { opacity: pressed ? 0.2 : 1 },
   ];
   const onChangeText = (payload: string) => setText(payload);
-  const addToDo = () => {
+  const saveToDos = async (newToDo: IToDos) => {
+    try {
+      const json = JSON.stringify(newToDo);
+      await AsyncStorage.setItem(STORAGE_KEY, json);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const loadToDos = async () => {
+    try {
+      const json: string | null = await AsyncStorage.getItem(STORAGE_KEY);
+      json !== null ? setToDos(JSON.parse(json)) : null;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const addToDo = async () => {
     if (text === '') return;
     const newToDos: IToDos = {
       ...toDos,
       [Date.now()]: { text, working },
     };
     setToDos(newToDos);
+    await saveToDos(newToDos);
     setText('');
   };
   return (
