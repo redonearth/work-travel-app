@@ -17,7 +17,7 @@ interface IPressableProps {
 interface IToDos {
   [key: string]: {
     text: string;
-    work: boolean;
+    working: boolean;
   };
 }
 
@@ -33,9 +33,10 @@ export default function App() {
   const onChangeText = (payload: string) => setText(payload);
   const addToDo = () => {
     if (text === '') return;
-    const newToDos: IToDos = Object.assign({}, toDos, {
-      [Date.now()]: { text, work: working },
-    });
+    const newToDos: IToDos = {
+      ...toDos,
+      [Date.now()]: { text, working },
+    };
     setToDos(newToDos);
     setText('');
   };
@@ -70,11 +71,13 @@ export default function App() {
         placeholder={working ? 'Add a To do!' : 'Where do you want to go?'}
       />
       <ScrollView>
-        {Object.keys(toDos).map((key) => (
-          <View style={styles.toDo} key={key}>
-            <Text style={styles.toDoText}>{toDos[key].text}</Text>
-          </View>
-        ))}
+        {Object.keys(toDos).map((key) =>
+          toDos[key].working === working ? (
+            <View style={styles.toDo} key={key}>
+              <Text style={styles.toDoText}>{toDos[key].text}</Text>
+            </View>
+          ) : null
+        )}
       </ScrollView>
     </View>
   );
