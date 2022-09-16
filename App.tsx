@@ -7,8 +7,10 @@ import {
   Pressable,
   TextInput,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { theme } from './colors';
+import { Fontisto } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface IPressableProps {
@@ -33,7 +35,7 @@ export default function App() {
   }, []);
   const travel = () => setWorking(false);
   const work = () => setWorking(true);
-  const handlePressable = ({ pressed }: IPressableProps) => [
+  const handlePressableStyle = ({ pressed }: IPressableProps) => [
     { opacity: pressed ? 0.2 : 1 },
   ];
   const onChangeText = (payload: string) => setText(payload);
@@ -55,26 +57,49 @@ export default function App() {
   };
   const addToDo = async () => {
     if (text === '') return;
-    const newToDos: IToDos = {
-      ...toDos,
-      [Date.now()]: { text, working },
-    };
-    setToDos(newToDos);
-    await saveToDos(newToDos);
-    setText('');
+    try {
+      const newToDos: IToDos = {
+        ...toDos,
+        [Date.now()]: { text, working },
+      };
+      setToDos(newToDos);
+      await saveToDos(newToDos);
+      setText('');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const deleteToDo = (key: string) => {
+    Alert.alert('Delete To Do', 'Are you sure?', [
+      { text: 'Cancel' },
+      {
+        text: "I'm Sure",
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const newToDos = { ...toDos };
+            delete newToDos[key];
+            setToDos(newToDos);
+            await saveToDos(newToDos);
+          } catch (error) {
+            console.error(error);
+          }
+        },
+      },
+    ]);
   };
   return (
     <View style={styles.container}>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
       <View style={styles.header}>
-        <Pressable style={handlePressable} onPress={work}>
+        <Pressable style={handlePressableStyle} onPress={work}>
           <Text
             style={{ ...styles.btnText, color: working ? 'white' : theme.grey }}
           >
             Work
           </Text>
         </Pressable>
-        <Pressable style={handlePressable} onPress={travel}>
+        <Pressable style={handlePressableStyle} onPress={travel}>
           <Text
             style={{
               ...styles.btnText,
@@ -98,6 +123,12 @@ export default function App() {
           toDos[key].working === working ? (
             <View style={styles.toDo} key={key}>
               <Text style={styles.toDoText}>{toDos[key].text}</Text>
+              <Pressable
+                onPress={() => deleteToDo(key)}
+                style={handlePressableStyle}
+              >
+                <Fontisto name="trash" size={18} color={theme.grey} />
+              </Pressable>
             </View>
           ) : null
         )}
@@ -130,7 +161,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   toDo: {
-    backgroundColor: theme.grey,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: theme.toDoBg,
     marginBottom: 10,
     paddingVertical: 20,
     paddingHorizontal: 20,
