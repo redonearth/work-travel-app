@@ -1,4 +1,4 @@
 export const theme = {
-  bg: 'black',
+  appBg: 'black',
   grey: '#3a3d40',
 };
