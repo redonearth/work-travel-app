@@ -24,6 +24,7 @@ interface IToDos {
   };
 }
 
+const TAB_KEY = '@tab';
 const STORAGE_KEY = '@toDos';
 
 export default function App() {
@@ -31,14 +32,36 @@ export default function App() {
   const [text, setText] = useState<string>('');
   const [toDos, setToDos] = useState<IToDos>({});
   useEffect(() => {
+    loadTab();
     loadToDos();
   }, []);
-  const travel = () => setWorking(false);
-  const work = () => setWorking(true);
+  const travel = () => {
+    setWorking(false);
+    saveTab(false);
+  };
+  const work = () => {
+    setWorking(true);
+    saveTab(true);
+  };
   const handlePressableStyle = ({ pressed }: IPressableProps) => [
     { opacity: pressed ? 0.2 : 1 },
   ];
   const onChangeText = (payload: string) => setText(payload);
+  const saveTab = async (tab: boolean) => {
+    try {
+      await AsyncStorage.setItem(TAB_KEY, tab.toString());
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const loadTab = async () => {
+    try {
+      const tabValue: string | null = await AsyncStorage.getItem(TAB_KEY);
+      return tabValue === 'true' ? setWorking(true) : setWorking(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
   const saveToDos = async (newToDo: IToDos) => {
     try {
       const json = JSON.stringify(newToDo);
@@ -50,7 +73,7 @@ export default function App() {
   const loadToDos = async () => {
     try {
       const json: string | null = await AsyncStorage.getItem(STORAGE_KEY);
-      json !== null ? setToDos(JSON.parse(json)) : null;
+      return json !== null ? setToDos(JSON.parse(json)) : null;
     } catch (error) {
       console.error(error);
     }
